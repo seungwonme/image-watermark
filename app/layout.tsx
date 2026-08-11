@@ -1,17 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Black_Han_Sans, IBM_Plex_Sans_KR } from "next/font/google";
 import { publicEnv, siteConfig } from "@/shared/config";
 import { ThemeProvider } from "@/shared/ui";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const ibmPlexSansKr = IBM_Plex_Sans_KR({
+  variable: "--font-ibm-plex-sans-kr",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const blackHanSans = Black_Han_Sans({
+  variable: "--font-black-han-sans",
+  weight: "400",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -86,7 +88,7 @@ export default function RootLayout({
   return (
     <html lang={siteConfig.lang} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${ibmPlexSansKr.variable} ${blackHanSans.variable} antialiased`}
       >
         <ThemeProvider
           attribute="data-theme"

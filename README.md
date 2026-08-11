@@ -1,122 +1,65 @@
-# Next.js Boilerplate
+# Watermark Lab
 
-Production-ready Next.js starter with TypeScript, Tailwind CSS v4, shadcn/ui (minimal preset), Biome, lefthook, and Feature-Sliced Design.
+이미지에 텍스트 또는 이미지 워터마크를 적용하고 원본 해상도로 내려받는 Next.js 서비스입니다.
 
-## Quick Start
+## 주요 기능
+
+- JPG, PNG, WebP, AVIF, GIF, SVG 다중 업로드
+- 텍스트 워터마크: 반복/가운데/오른쪽 아래 배치, 색상, 크기, 불투명도, 간격, 각도
+- 이미지 워터마크: PNG/SVG 로고, 크기, 불투명도, 간격, 각도
+- 눈누 21종, Google Fonts 51종, 시스템 글꼴, WOFF/WOFF2/TTF/OTF 직접 추가
+- PNG, JPG, WebP 저장과 여러 이미지 ZIP 다운로드
+- 반응형 UI, 라이트/다크 테마, 키보드 접근성
+
+## 시작하기
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+브라우저에서 [http://localhost:3000](http://localhost:3000)을 엽니다.
 
-## Tech Stack
-
-- **Framework**: Next.js 16 (App Router) + React 19 + TypeScript 5
-- **Styling**: Tailwind CSS v4 (config in `globals.css`) + tw-animate-css
-- **UI**: shadcn/ui (New York style, minimal preset — Button + ThemeToggle only)
-- **Theme**: next-themes (dark mode via `data-theme` attribute)
-- **Lint/Format**: Biome
-- **Architecture lint**: Steiger (Feature-Sliced Design)
-- **Hooks**: lefthook (pre-commit)
-- **Package manager**: pnpm
-
-## Commands
+## 검증 명령
 
 ```bash
-pnpm dev              # Dev server (localhost:3000)
-pnpm build            # Production build
-pnpm lint             # Biome lint
-pnpm check            # Biome lint + format + auto-fix
-pnpm lint:fsd         # Steiger FSD architecture lint
+pnpm typecheck   # TypeScript strict 검사
+pnpm lint        # Biome 검사
+pnpm lint:fsd    # Feature-Sliced Design 레이어 검사
+pnpm test        # Vitest 단위 테스트
+pnpm test:e2e    # Playwright 브라우저 테스트
+pnpm build       # Next.js 프로덕션 빌드
 ```
 
-## Branches
+## 구조
 
-| Branch                | Stack add-ons                                                |
-| --------------------- | ------------------------------------------------------------ |
-| `main`                | Base only (this branch)                                      |
-| `supabase`            | Supabase Auth (SSR) + storage + auth pages                   |
-| `neon-cloudflare-r2`  | Drizzle ORM + Neon Postgres + Neon Auth + Cloudflare R2      |
-
-Pick the branch that matches your stack and clone from there. Branch variants are kept in sync with `main` for the base stack.
-
-## Project Structure (FSD)
-
-```
-app/                  # Next.js App Router (routing only — re-exports from src/pages)
-pages/                # Empty placeholder (prevents Next.js Pages Router conflict with src/pages)
-src/
-├── app/              # Providers, global config
-├── pages/            # Page composition (FSD pages layer)
-├── widgets/          # Header, Footer, Sidebar
-├── features/         # auth, checkout, search
-├── entities/         # user, product, order
-└── shared/           # ui, lib, api, hooks, config
+```text
+app/                                  # Next.js App Router
+src/pages/home/                       # 페이지 조합
+src/features/watermark-editor/
+├── config/font-catalog.ts            # 눈누/Google 글꼴 카탈로그
+├── lib/canvas-renderer.ts            # Canvas 렌더링과 출력
+├── lib/font-loader.ts                # 선택 글꼴 지연 로딩
+├── model/                            # 편집 상태와 타입
+└── ui/                               # 작업 영역과 설정 패널
+tests/unit/                           # 렌더러 단위 테스트
+tests/e2e/                            # 업로드/다운로드 E2E
 ```
 
-Dependency direction: `app → pages → widgets → features → entities → shared`. No cross-imports within the same layer. See [AGENTS.md](./AGENTS.md) for the full architecture guide.
+## 글꼴 이용 조건
 
-## Site Configuration
+글꼴 선택기에서 각 글꼴의 이용 조건 페이지를 열 수 있습니다. 눈누 글꼴은 버전이 고정된 배포 파일을 사용하며, Google Fonts는 CSS2 API로 선택한 글꼴만 불러옵니다. 직접 추가한 글꼴의 사용 권한은 파일 보유자가 확인해야 합니다.
 
-All site metadata lives in `src/shared/config/site.ts` (single source of truth). Update once and `app/layout.tsx`, `robots.ts`, `sitemap.ts`, `manifest.ts`, and JSON-LD helpers all pick it up:
+## 이미지 한도
 
-```ts
-// src/shared/config/site.ts
-export const siteConfig = {
-  name: "Your App",
-  description: "...",
-  url: publicEnv.siteUrl,
-  locale: "ko_KR",
-  lang: "ko",
-  author: { name: "Your Name", url: "https://..." },
-  // ...
-};
-```
+브라우저 Canvas 호환 범위에 맞춰 내보내기는 가로/세로 32,767px 이하, 총 1억 픽셀 이하를 지원합니다. 미리보기는 긴 변 1,600px로 축소하며 다운로드는 원본 크기로 다시 렌더링합니다.
 
-Environment variables go in `.env.local` (see `.env.example`):
+## 기술 스택
 
-```bash
-NEXT_PUBLIC_SITE_URL="https://yourdomain.com"
-NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION="..."
-```
+- Next.js 16, React 19, TypeScript
+- Tailwind CSS 4, shadcn/ui 기반 Button, next-themes
+- JSZip, Vitest, Playwright, Biome, Steiger
 
-Typed access via `publicEnv` in `src/shared/config/env.ts`.
+## 링크
 
-## Adding shadcn/ui Components
-
-The base ships with Button + ThemeProvider/ThemeToggle. Add more on demand:
-
-```bash
-pnpm dlx shadcn@latest add dialog
-pnpm dlx shadcn@latest add input form
-```
-
-Components install into `src/shared/ui/` and need to be re-exported from `src/shared/ui/index.ts`.
-
-## Next.js Upgrade
-
-Use the official codemod:
-
-```bash
-pnpm dlx @next/codemod@canary upgrade latest
-pnpm install
-pnpm build
-pnpm lint
-```
-
-If already on the target version, the codemod reports no upgrade needed.
-
-## Deploy on Vercel
-
-The easiest way is the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
-
-See the [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying) for other targets.
-
-## Learn More
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Feature-Sliced Design](https://feature-sliced.design)
-- [shadcn/ui](https://ui.shadcn.com)
-- [Tailwind CSS v4](https://tailwindcss.com/blog/tailwindcss-v4)
+- GitHub: [seungwonme/image-watermark](https://github.com/seungwonme/image-watermark)

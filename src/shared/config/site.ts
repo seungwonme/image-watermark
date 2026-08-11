@@ -5,9 +5,9 @@ import { publicEnv } from "./env";
 // robots, manifest, JSON-LD) reads from here.
 
 export const siteConfig = {
-  name: "Next.js Boilerplate",
+  name: "Watermark Lab",
   description:
-    "Production-ready Next.js boilerplate with TypeScript, Tailwind CSS, and shadcn/ui",
+    "눈누와 Google Fonts로 텍스트 및 이미지 워터마크를 만드는 이미지 편집 도구",
   url: publicEnv.siteUrl,
   locale: "ko_KR",
   lang: "ko",
@@ -15,11 +15,17 @@ export const siteConfig = {
     name: "Aiden Ahn",
     url: "https://github.com/seungwonme",
   },
-  keywords: ["Next.js", "React", "TypeScript", "Tailwind CSS", "shadcn/ui"],
-  ogImage: "/og-image.png",
+  keywords: [
+    "이미지 워터마크",
+    "텍스트 워터마크",
+    "눈누 폰트",
+    "Google Fonts",
+    "이미지 편집",
+  ],
+  ogImage: "/opengraph-image",
   themeColor: {
-    light: "#ffffff",
-    dark: "#000000",
+    light: "#f2f4ef",
+    dark: "#101210",
   },
 } as const;
 

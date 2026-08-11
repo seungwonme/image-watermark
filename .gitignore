@@ -10,14 +10,13 @@
 !.yarn/releases
 !.yarn/versions
 
-# pnpm
-pnpm-lock.yaml
-
 # bun
 bun.lock
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # next.js
 /.next/
@@ -63,3 +62,4 @@ next-env.d.ts
 
 # other
 repomix-output.xml
+.gstack/
