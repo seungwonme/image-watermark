@@ -26,7 +26,7 @@ test("텍스트 워터마크를 편집하고 원본 해상도로 다운로드한
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { name: "WATERMARK LAB" }),
+    page.getByRole("link", { name: "Watermark Lab 편집기" }),
   ).toBeVisible();
   await page.locator('input[type="file"][multiple]').setInputFiles({
     name: "sample.svg",
@@ -41,12 +41,70 @@ test("텍스트 워터마크를 편집하고 원본 해상도로 다운로드한
 
   await page.getByRole("button", { name: /프리텐다드/ }).click();
   await page.getByLabel("글꼴 이름 검색").fill("Apple SD");
-  await page.getByRole("option", { name: /Apple SD 산돌고딕 Neo/ }).click();
+  await page.getByRole("button", { name: /Apple SD 산돌고딕 Neo/ }).click();
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "현재 이미지 다운로드" }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("sample-watermarked.png");
+});
+
+test("눈누 글꼴을 카테고리와 이름으로 찾고 인기순으로 선택한다", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: /프리텐다드/ }).click();
+  await expect(page.getByRole("dialog", { name: "글꼴 선택" })).toBeVisible();
+  await expect(
+    page.locator('[data-font-preview-id="noonnu-pretendard"]'),
+  ).toHaveCSS("font-family", /WM Pretendard/);
+  await page.getByRole("button", { name: /^눈누 49$/ }).click();
+  await page.getByRole("button", { name: /^손글씨/ }).click();
+  await page.getByLabel("글꼴 이름 검색").fill("프롬솔");
+
+  const fontButton = page.getByRole("button", { name: /그리운 프롬솔/ });
+  await expect(fontButton).toContainText("인기 5위");
+  await fontButton.click();
+  await expect(
+    page.getByRole("button", { name: /그리운 프롬솔/ }),
+  ).toBeVisible();
+});
+
+test("메인 편집기와 별도 사용법 페이지를 제공한다", async ({ page }) => {
+  await page.goto("/");
+
+  const canonicalUrl = await page
+    .locator('link[rel="canonical"]')
+    .getAttribute("href");
+  expect(canonicalUrl).not.toBeNull();
+  expect(new URL(canonicalUrl ?? "").pathname).toBe("/");
+  await expect(
+    page.getByRole("heading", { name: "이미지 워터마크 만들기" }),
+  ).toBeAttached();
+  await expect(
+    page.getByRole("heading", {
+      name: "세 단계면 워터마크가 완성됩니다",
+    }),
+  ).toHaveCount(0);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(
+    2,
+  );
+
+  await page.getByRole("link", { name: "사용법" }).click();
+  await expect(page).toHaveURL(/\/guide$/);
+  await expect(
+    page.getByRole("heading", {
+      name: "세 단계면 워터마크가 완성됩니다",
+    }),
+  ).toBeVisible();
+  const guideCanonicalUrl = await page
+    .locator('link[rel="canonical"]')
+    .getAttribute("href");
+  expect(new URL(guideCanonicalUrl ?? "").pathname).toBe("/guide");
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(
+    2,
+  );
 });
 
 test("여러 이미지와 이미지 워터마크를 ZIP으로 저장한다", async ({ page }) => {
@@ -85,4 +143,17 @@ test("모바일 화면에서도 업로드와 설정 패널을 사용할 수 있�
     () => document.documentElement.scrollWidth > window.innerWidth,
   );
   expect(hasHorizontalOverflow).toBe(false);
+
+  const fontTrigger = page.getByRole("button", { name: /프리텐다드/ });
+  await fontTrigger.click();
+  const dialog = page.getByRole("dialog", { name: "글꼴 선택" });
+  await expect(dialog.getByRole("button", { name: "닫기" })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  expect(
+    await dialog.evaluate((element) =>
+      element.contains(document.activeElement),
+    ),
+  ).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(fontTrigger).toBeFocused();
 });

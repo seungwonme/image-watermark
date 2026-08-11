@@ -1,15 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FaGithub } from "react-icons/fa6";
-import {
-  LuImagePlus,
-  LuLayers3,
-  LuPlus,
-  LuTrash2,
-  LuUpload,
-} from "react-icons/lu";
-import { Button, ThemeToggle } from "@/shared/ui";
+import { LuImagePlus, LuPlus, LuTrash2, LuUpload } from "react-icons/lu";
+import { Button } from "@/shared/ui";
 import { FONT_CATALOG, findFontById } from "../config";
 import {
   canvasToBlob,
@@ -367,34 +360,15 @@ export function WatermarkStudio() {
   };
 
   return (
-    <div className="min-h-svh bg-background text-foreground">
-      <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-foreground text-background shadow-sm">
-            <LuLayers3 className="size-5" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-base font-black tracking-[-0.035em] sm:text-lg">
-              WATERMARK LAB
-            </h1>
-            <p className="hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:block">
-              Image watermark studio
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          <ThemeToggle />
-        </div>
-      </header>
-
-      <main className="grid min-h-[calc(100svh-4rem)] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_23rem] xl:grid-cols-[minmax(0,1fr)_25rem]">
+    <div className="bg-background text-foreground">
+      <div className="grid min-h-[calc(100svh-4rem)] grid-cols-1 lg:h-[calc(100svh-4rem)] lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_23rem] xl:grid-cols-[minmax(0,1fr)_25rem]">
         <section
           aria-label="이미지 편집 작업 영역"
           onDragEnter={handleDragEnter}
           onDragOver={(event) => event.preventDefault()}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative flex min-h-[42rem] min-w-0 flex-col bg-workbench text-workbench-foreground transition-shadow ${
+          className={`relative flex min-h-[42rem] min-w-0 flex-col bg-workbench text-workbench-foreground transition-shadow lg:min-h-0 ${
             isDragging ? "shadow-[inset_0_0_0_3px_var(--primary)]" : ""
           }`}
         >
@@ -535,17 +509,7 @@ export function WatermarkStudio() {
           onDownloadCurrent={() => void handleDownloadCurrent()}
           onDownloadAll={() => void handleDownloadAll()}
         />
-      </main>
-
-      <a
-        href="https://github.com/seungwonme/image-watermark"
-        target="_blank"
-        rel="noreferrer"
-        aria-label="GitHub 저장소 열기"
-        className="fixed bottom-5 right-5 z-[70] flex size-12 items-center justify-center rounded-full border border-background/15 bg-foreground text-background shadow-[0_14px_38px_rgba(0,0,0,0.28)] transition-transform hover:-translate-y-1 hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background"
-      >
-        <FaGithub className="size-5" aria-hidden="true" />
-      </a>
+      </div>
     </div>
   );
 }

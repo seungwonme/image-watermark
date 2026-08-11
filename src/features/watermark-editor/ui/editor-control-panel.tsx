@@ -86,7 +86,7 @@ export function EditorControlPanel({
   };
 
   return (
-    <aside className="flex min-h-0 flex-col border-t border-border bg-card lg:border-l lg:border-t-0">
+    <aside className="flex min-h-0 flex-col border-t border-border bg-card lg:h-full lg:border-l lg:border-t-0">
       <div className="border-b border-border p-3">
         <div className="grid grid-cols-2 gap-1 rounded-xl bg-foreground/[0.055] p-1">
           {KIND_OPTIONS.map((option) => {

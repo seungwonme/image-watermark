@@ -5,6 +5,7 @@ import type {
   Organization,
   Person,
   Product,
+  WebApplication,
   WebPage,
   WebSite,
   WithContext,
@@ -19,6 +20,7 @@ type JsonLdType =
   | WithContext<Person>
   | WithContext<BreadcrumbList>
   | WithContext<Product>
+  | WithContext<WebApplication>
   | WithContext<FAQPage>;
 
 interface JsonLdProps {
@@ -41,6 +43,28 @@ export function createWebSiteJsonLd(): WithContext<WebSite> {
     "@type": "WebSite",
     name: siteConfig.name,
     url: siteConfig.url,
+  };
+}
+
+export function createWebApplicationJsonLd(): WithContext<WebApplication> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    description: siteConfig.description,
+    applicationCategory: "MultimediaApplication",
+    operatingSystem: "Any",
+    browserRequirements: "Canvas를 지원하는 최신 웹 브라우저",
+    inLanguage: "ko-KR",
+    image: `${siteConfig.url}${siteConfig.ogImage}`,
+    featureList: [
+      "텍스트 워터마크",
+      "로고 이미지 워터마크",
+      "눈누 및 Google Fonts 글꼴 선택",
+      "여러 이미지 일괄 저장",
+      "PNG, JPG, WebP 형식 다운로드",
+    ],
   };
 }
 

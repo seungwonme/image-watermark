@@ -5,6 +5,7 @@ export {
   createBreadcrumbJsonLd,
   createFAQJsonLd,
   createOrganizationJsonLd,
+  createWebApplicationJsonLd,
   createWebPageJsonLd,
   createWebSiteJsonLd,
   JsonLd,

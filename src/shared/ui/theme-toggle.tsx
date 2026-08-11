@@ -17,7 +17,7 @@ export function ThemeToggle() {
       <button
         type="button"
         className="inline-flex items-center justify-center rounded-md p-2 hover:bg-foreground/10"
-        aria-label="Toggle theme"
+        aria-label="테마 변경"
       >
         <span className="size-5" />
       </button>
@@ -39,7 +39,7 @@ export function ThemeToggle() {
       type="button"
       onClick={cycleTheme}
       className="inline-flex items-center justify-center rounded-md p-2 hover:bg-foreground/10 transition-colors"
-      aria-label="Toggle theme"
+      aria-label="테마 변경"
     >
       {theme === "light" && <LuSun className="size-5" />}
       {theme === "dark" && <LuMoon className="size-5" />}

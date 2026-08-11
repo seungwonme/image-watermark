@@ -7,9 +7,11 @@
 - JPG, PNG, WebP, AVIF, GIF, SVG 다중 업로드
 - 텍스트 워터마크: 반복/가운데/오른쪽 아래 배치, 색상, 크기, 불투명도, 간격, 각도
 - 이미지 워터마크: PNG/SVG 로고, 크기, 불투명도, 간격, 각도
-- 눈누 21종, Google Fonts 51종, 시스템 글꼴, WOFF/WOFF2/TTF/OTF 직접 추가
+- 눈누 인기 글꼴 49종, Google Fonts 52종, 시스템 글꼴, WOFF/WOFF2/TTF/OTF 직접 추가
+- 실제 글꼴 미리보기, 이름 검색, 눈누/Google/기본 제공처 필터, 고딕/명조/손글씨/타이틀/고정폭 카테고리 필터
 - PNG, JPG, WebP 저장과 여러 이미지 ZIP 다운로드
 - 반응형 UI, 라이트/다크 테마, 키보드 접근성
+- canonical, sitemap, robots, Open Graph, WebApplication 구조화 데이터
 
 ## 시작하기
 
@@ -35,7 +37,8 @@ pnpm build       # Next.js 프로덕션 빌드
 
 ```text
 app/                                  # Next.js App Router
-src/pages/home/                       # 페이지 조합
+src/pages/home/, guide/               # 편집기/사용법 페이지 조합
+src/widgets/site-shell/               # 전역 상단 탭과 GitHub 링크
 src/features/watermark-editor/
 ├── config/font-catalog.ts            # 눈누/Google 글꼴 카탈로그
 ├── lib/canvas-renderer.ts            # Canvas 렌더링과 출력
@@ -62,4 +65,5 @@ tests/e2e/                            # 업로드/다운로드 E2E
 
 ## 링크
 
+- 서비스: [image-watermark-three.vercel.app](https://image-watermark-three.vercel.app)
 - GitHub: [seungwonme/image-watermark](https://github.com/seungwonme/image-watermark)

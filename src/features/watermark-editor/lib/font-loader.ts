@@ -46,7 +46,12 @@ async function loadGoogleFont(font: FontOption): Promise<void> {
     document.head.append(link);
   }
 
-  await waitForStylesheet(link);
+  try {
+    await waitForStylesheet(link);
+  } catch (error) {
+    link.remove();
+    throw error;
+  }
 }
 
 async function loadFontFace(font: FontOption): Promise<void> {
@@ -90,7 +95,11 @@ export async function ensureFontLoaded(
   })().catch(() => false);
 
   fontLoadCache.set(font.id, loadPromise);
-  return loadPromise;
+  const isLoaded = await loadPromise;
+  if (!isLoaded) {
+    fontLoadCache.delete(font.id);
+  }
+  return isLoaded;
 }
 
 export function createLocalFontOption(file: File): FontOption {

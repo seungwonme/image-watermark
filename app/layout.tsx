@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Black_Han_Sans, IBM_Plex_Sans_KR } from "next/font/google";
 import { publicEnv, siteConfig } from "@/shared/config";
 import { ThemeProvider } from "@/shared/ui";
+import { SiteShell } from "@/widgets/site-shell";
 import "./globals.css";
 
 const ibmPlexSansKr = IBM_Plex_Sans_KR({
@@ -18,11 +19,15 @@ const blackHanSans = Black_Han_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
+  applicationName: siteConfig.name,
   title: {
-    default: siteConfig.name,
+    default: `이미지 워터마크 만들기 | ${siteConfig.name}`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
+  alternates: {
+    canonical: "/",
+  },
   keywords: [...siteConfig.keywords],
   authors: [{ name: siteConfig.author.name, url: siteConfig.author.url }],
   creator: siteConfig.author.name,
@@ -38,7 +43,7 @@ export const metadata: Metadata = {
         url: siteConfig.ogImage,
         width: 1200,
         height: 630,
-        alt: siteConfig.name,
+        alt: "Watermark Lab 이미지 워터마크 편집기",
       },
     ],
   },
@@ -97,7 +102,7 @@ export default function RootLayout({
           enableColorScheme
           disableTransitionOnChange
         >
-          <main>{children}</main>
+          <SiteShell>{children}</SiteShell>
         </ThemeProvider>
       </body>
     </html>

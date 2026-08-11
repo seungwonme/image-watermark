@@ -7,7 +7,7 @@ import { publicEnv } from "./env";
 export const siteConfig = {
   name: "Watermark Lab",
   description:
-    "눈누와 Google Fonts로 텍스트 및 이미지 워터마크를 만드는 이미지 편집 도구",
+    "텍스트 또는 로고 이미지로 워터마크를 만들고, 눈누와 Google Fonts를 적용해 여러 이미지를 한 번에 저장하세요.",
   url: publicEnv.siteUrl,
   locale: "ko_KR",
   lang: "ko",

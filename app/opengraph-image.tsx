@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Watermark Lab - image watermark studio";
+export const alt = "Watermark Lab 이미지 워터마크 편집기";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -76,7 +76,7 @@ export default function OpenGraphImage() {
               letterSpacing: "-0.055em",
             }}
           >
-            Put your mark on every image.
+            이미지마다 나만의 워터마크를.
           </div>
           <div
             style={{
@@ -85,7 +85,7 @@ export default function OpenGraphImage() {
               color: "#aeb5aa",
             }}
           >
-            Text, image, 70+ fonts and batch export.
+            텍스트, 로고, 다양한 한글 글꼴과 일괄 저장.
           </div>
         </div>
       </div>

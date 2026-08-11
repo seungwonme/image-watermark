@@ -11,7 +11,7 @@ export type FontCategory =
   | "serif"
   | "handwriting"
   | "display"
-  | "latin"
+  | "monospace"
   | "custom";
 
 export interface FontOption {
@@ -21,6 +21,8 @@ export interface FontOption {
   provider: FontProvider;
   category: FontCategory;
   supportsKorean: boolean;
+  popularityRank?: number;
+  aliases?: string[];
   sourceUrl?: string;
   licenseUrl?: string;
 }
