@@ -4,7 +4,7 @@ export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
   kind: "text",
   text: {
     text: "내 이미지",
-    fontId: "noonnu-pretendard",
+    fontId: "system-sans",
     color: "#d8ff5f",
     fontSize: 56,
     opacity: 48,

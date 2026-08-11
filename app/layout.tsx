@@ -1,21 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Black_Han_Sans, IBM_Plex_Sans_KR } from "next/font/google";
 import { publicEnv, siteConfig } from "@/shared/config";
 import { ThemeProvider } from "@/shared/ui";
 import { SiteShell } from "@/widgets/site-shell";
 import "./globals.css";
-
-const ibmPlexSansKr = IBM_Plex_Sans_KR({
-  variable: "--font-ibm-plex-sans-kr",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const blackHanSans = Black_Han_Sans({
-  variable: "--font-black-han-sans",
-  weight: "400",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -92,9 +79,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang={siteConfig.lang} suppressHydrationWarning>
-      <body
-        className={`${ibmPlexSansKr.variable} ${blackHanSans.variable} antialiased`}
-      >
+      <body className="antialiased">
         <ThemeProvider
           attribute="data-theme"
           defaultTheme="system"

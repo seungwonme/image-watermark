@@ -90,7 +90,6 @@ export async function ensureFontLoaded(
 
     const fontDescriptor = `400 64px "${font.family}"`;
     await document.fonts.load(fontDescriptor, sampleText || "가나다 ABC");
-    await document.fonts.ready;
     return document.fonts.check(fontDescriptor, sampleText || "가나다 ABC");
   })().catch(() => false);
 

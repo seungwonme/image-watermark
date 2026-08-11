@@ -671,9 +671,9 @@ const NOONNU_FONTS: FontOption[] = [
 
 const SYSTEM_FONTS: FontOption[] = [
   {
-    id: "system-apple-sd-gothic",
-    name: "Apple SD 산돌고딕 Neo",
-    family: "Apple SD Gothic Neo",
+    id: "system-sans",
+    name: "시스템 고딕",
+    family: "sans-serif",
     provider: "system",
     category: "gothic",
     supportsKorean: true,

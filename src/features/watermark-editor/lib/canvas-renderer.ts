@@ -26,6 +26,7 @@ interface RenderOptions {
   font: FontOption;
   watermarkImage: WatermarkImage | null;
   preview?: boolean;
+  targetCanvas?: HTMLCanvasElement;
 }
 
 interface Point {
@@ -227,6 +228,7 @@ export function renderWatermarkedImage({
   font,
   watermarkImage,
   preview = false,
+  targetCanvas,
 }: RenderOptions): HTMLCanvasElement {
   const pixelCount = source.width * source.height;
   const hasUnsupportedDimensions =
@@ -244,7 +246,7 @@ export function renderWatermarkedImage({
     ? calculatePreviewDimensions(source.width, source.height)
     : { width: source.width, height: source.height, scale: 1 };
 
-  const canvas = document.createElement("canvas");
+  const canvas = targetCanvas ?? document.createElement("canvas");
   canvas.width = dimensions.width;
   canvas.height = dimensions.height;
 

@@ -225,7 +225,7 @@ export function FontPicker({
     const loadPreviewFont = (element: HTMLElement) => {
       const fontId = element.dataset.fontPreviewId;
       const font = fontId ? fontById.get(fontId) : undefined;
-      if (!font || loadedPreviewFontIds.has(font.id)) {
+      if (!font) {
         return;
       }
 
@@ -277,7 +277,7 @@ export function FontPicker({
       isCancelled = true;
       observer.disconnect();
     };
-  }, [fontById, isOpen, loadedPreviewFontIds, previewFontKey]);
+  }, [fontById, isOpen, previewFontKey]);
 
   const handleProviderChange = (provider: ProviderFilter) => {
     setProviderFilter(provider);

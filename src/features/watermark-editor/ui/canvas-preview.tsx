@@ -45,21 +45,18 @@ export function CanvasPreview({
 
       frameId = window.requestAnimationFrame(() => {
         try {
-          const previewCanvas = renderWatermarkedImage({
+          const canvas = canvasRef.current;
+          if (!canvas) {
+            throw new Error("미리보기 Canvas를 시작할 수 없습니다.");
+          }
+          renderWatermarkedImage({
             source,
             settings,
             font,
             watermarkImage,
             preview: true,
+            targetCanvas: canvas,
           });
-          const canvas = canvasRef.current;
-          const context = canvas?.getContext("2d");
-          if (!canvas || !context) {
-            throw new Error("미리보기 Canvas를 시작할 수 없습니다.");
-          }
-          canvas.width = previewCanvas.width;
-          canvas.height = previewCanvas.height;
-          context.drawImage(previewCanvas, 0, 0);
           setPreviewState(isFontReady ? "ready" : "font-fallback");
         } catch {
           setPreviewState("error");

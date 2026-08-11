@@ -34,14 +34,25 @@ test("텍스트 워터마크를 편집하고 원본 해상도로 다운로드한
     buffer: SOURCE_SVG,
   });
 
-  await expect(
-    page.getByRole("img", { name: "sample.svg 워터마크 미리보기" }),
-  ).toBeVisible();
+  const previewCanvas = page.getByRole("img", {
+    name: "sample.svg 워터마크 미리보기",
+  });
+  await expect(previewCanvas).toBeVisible();
+  await expect(previewCanvas).toHaveJSProperty("width", 640);
+  await expect(previewCanvas).toHaveJSProperty("height", 420);
+  await expect
+    .poll(() =>
+      previewCanvas.evaluate((canvas) => {
+        const context = (canvas as HTMLCanvasElement).getContext("2d");
+        return context?.getImageData(320, 210, 1, 1).data[3] ?? 0;
+      }),
+    )
+    .toBeGreaterThan(0);
   await page.getByLabel("워터마크 문구").fill("AIDEN SAMPLE");
 
-  await page.getByRole("button", { name: /프리텐다드/ }).click();
-  await page.getByLabel("글꼴 이름 검색").fill("Apple SD");
-  await page.getByRole("button", { name: /Apple SD 산돌고딕 Neo/ }).click();
+  await page.getByRole("button", { name: /시스템 고딕/ }).click();
+  await page.getByLabel("글꼴 이름 검색").fill("시스템 명조");
+  await page.getByRole("button", { name: /시스템 명조/ }).click();
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "현재 이미지 다운로드" }).click();
@@ -54,7 +65,7 @@ test("눈누 글꼴을 카테고리와 이름으로 찾고 인기순으로 선�
 }) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: /프리텐다드/ }).click();
+  await page.getByRole("button", { name: /시스템 고딕/ }).click();
   await expect(page.getByRole("dialog", { name: "글꼴 선택" })).toBeVisible();
   await expect(
     page.locator('[data-font-preview-id="noonnu-pretendard"]'),
@@ -144,7 +155,9 @@ test("모바일 화면에서도 업로드와 설정 패널을 사용할 수 있�
   );
   expect(hasHorizontalOverflow).toBe(false);
 
-  const fontTrigger = page.getByRole("button", { name: /프리텐다드/ });
+  const fontTrigger = page.getByRole("button", {
+    name: /시스템 고딕/,
+  });
   await fontTrigger.click();
   const dialog = page.getByRole("dialog", { name: "글꼴 선택" });
   await expect(dialog.getByRole("button", { name: "닫기" })).toBeFocused();

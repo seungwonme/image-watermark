@@ -6,8 +6,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-ibm-plex-sans-kr);
-  --font-display: var(--font-black-han-sans);
   --font-mono: "SFMono-Regular", "SF Mono", Consolas, monospace;
   --color-workbench: var(--workbench);
   --color-workbench-foreground: var(--workbench-foreground);
