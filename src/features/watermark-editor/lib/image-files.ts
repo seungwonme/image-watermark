@@ -67,12 +67,42 @@ export function revokeSourceImage(image: SourceImage | WatermarkImage): void {
   URL.revokeObjectURL(image.url);
 }
 
+export const BLANK_CANVAS_MIN_SIZE = 16;
+export const BLANK_CANVAS_MAX_SIZE = 8_000;
+
+export function clampBlankCanvasSize(value: number): number {
+  if (!Number.isFinite(value)) {
+    return BLANK_CANVAS_MIN_SIZE;
+  }
+  return Math.min(
+    BLANK_CANVAS_MAX_SIZE,
+    Math.max(BLANK_CANVAS_MIN_SIZE, Math.round(value)),
+  );
+}
+
+// width/height/viewBox를 모두 명시해야 한다. viewBox만 있으면 Chromium이
+// naturalWidth를 84x150으로 잡아 에러 없이 엉뚱한 크기가 나온다.
 export function createBlankImageFile(
-  name: string,
   width: number,
   height: number,
   color: string,
 ): File {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${color}"/></svg>`;
-  return new File([svg], `${name}.svg`, { type: "image/svg+xml" });
+  return new File([svg], `blank-${width}x${height}-${color.slice(1)}.svg`, {
+    type: "image/svg+xml",
+  });
+}
+
+// 배경 위에서 읽히는 워터마크 글자색. 기본값 #d8ff5f를 불투명도 48%로 흰
+// 배경에 올리면 명암비가 1.08:1이라 워터마크가 보이지 않는다.
+export function readableTextColor(backgroundColor: string): string {
+  const toLinear = (channel: number) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  const [red, green, blue] = [1, 3, 5].map((offset) =>
+    toLinear(
+      Number.parseInt(backgroundColor.slice(offset, offset + 2), 16) / 255,
+    ),
+  );
+  const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  return luminance > 0.4 ? "#111111" : "#ffffff";
 }

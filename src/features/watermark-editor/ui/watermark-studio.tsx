@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LuImagePlus, LuPlus, LuTrash2, LuUpload } from "react-icons/lu";
+import {
+  LuArrowLeftRight,
+  LuImagePlus,
+  LuPlus,
+  LuTrash2,
+  LuUpload,
+} from "react-icons/lu";
 import { Button } from "@/shared/ui";
 import { FONT_CATALOG, findFontById } from "../config";
 import {
@@ -11,10 +17,14 @@ import {
 } from "../lib/canvas-renderer";
 import { createLocalFontOption, ensureFontLoaded } from "../lib/font-loader";
 import {
+  BLANK_CANVAS_MAX_SIZE,
+  BLANK_CANVAS_MIN_SIZE,
+  clampBlankCanvasSize,
   createBlankImageFile,
   createSourceImage,
   createWatermarkImage,
   isSupportedImageFile,
+  readableTextColor,
   revokeSourceImage,
   SUPPORTED_FONT_EXTENSIONS,
 } from "../lib/image-files";
@@ -32,45 +42,13 @@ import { EmptyWorkbench } from "./empty-workbench";
 
 const STATUS_RESET_DELAY_MS = 4_000;
 
-const BLANK_PRESETS = [
-  {
-    label: "흰 배경 9:16",
-    name: "blank-white-1080x1920",
-    width: 1080,
-    height: 1920,
-    color: "#ffffff",
-    textColor: "#111111",
-  },
-  {
-    label: "검은 배경 9:16",
-    name: "blank-black-1080x1920",
-    width: 1080,
-    height: 1920,
-    color: "#000000",
-    textColor: "#ffffff",
-  },
-  {
-    label: "흰 배경 16:9",
-    name: "blank-white-1920x1080",
-    width: 1920,
-    height: 1080,
-    color: "#ffffff",
-    textColor: "#111111",
-  },
-  {
-    label: "검은 배경 16:9",
-    name: "blank-black-1920x1080",
-    width: 1920,
-    height: 1080,
-    color: "#000000",
-    textColor: "#ffffff",
-  },
-] as const;
+const DEFAULT_BLANK_CANVAS = { width: 1080, height: 1920, color: "#ffffff" };
 
-// 빈 배경이 덮어써도 되는 글자색. 사용자가 직접 고른 색은 그대로 둔다.
-const PRESET_MANAGED_COLORS = new Set([
+// 빈 캔버스가 덮어써도 되는 글자색. 사용자가 직접 고른 색은 그대로 둔다.
+const AUTO_TEXT_COLORS = new Set([
   DEFAULT_EDITOR_SETTINGS.text.color,
-  ...BLANK_PRESETS.map((preset) => preset.textColor),
+  "#111111",
+  "#ffffff",
 ]);
 
 function cloneDefaultSettings(): EditorSettings {
@@ -103,6 +81,7 @@ export function WatermarkStudio() {
     useState<EditorSettings>(cloneDefaultSettings);
   const [status, setStatus] = useState<EditorStatus>({ kind: "idle" });
   const [isDragging, setIsDragging] = useState(false);
+  const [blankCanvas, setBlankCanvas] = useState(DEFAULT_BLANK_CANVAS);
   const sourceInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
   const imagesRef = useRef(images);
@@ -196,31 +175,34 @@ export function WatermarkStudio() {
     });
   };
 
-  const handleCreateBlank = async (preset: (typeof BLANK_PRESETS)[number]) => {
+  const handleCreateBlank = async () => {
+    const width = clampBlankCanvasSize(blankCanvas.width);
+    const height = clampBlankCanvasSize(blankCanvas.height);
     try {
       const blankImage = await createSourceImage(
-        createBlankImageFile(
-          preset.name,
-          preset.width,
-          preset.height,
-          preset.color,
-        ),
+        createBlankImageFile(width, height, blankCanvas.color),
       );
       setImages((current) => [...current, blankImage]);
       setSelectedImageId(blankImage.id);
       setSettings((current) =>
-        PRESET_MANAGED_COLORS.has(current.text.color)
-          ? { ...current, text: { ...current.text, color: preset.textColor } }
+        AUTO_TEXT_COLORS.has(current.text.color)
+          ? {
+              ...current,
+              text: {
+                ...current.text,
+                color: readableTextColor(blankCanvas.color),
+              },
+            }
           : current,
       );
       setStatus({
         kind: "success",
-        message: `${preset.label} 이미지를 추가했습니다.`,
+        message: `${width} × ${height} 빈 캔버스를 추가했습니다.`,
       });
     } catch {
       setStatus({
         kind: "error",
-        message: "빈 배경을 만들지 못했습니다.",
+        message: "빈 캔버스를 만들지 못했습니다.",
       });
     }
   };
@@ -484,23 +466,77 @@ export function WatermarkStudio() {
 
           <div className="flex items-center gap-2 overflow-x-auto border-t border-workbench-foreground/10 px-4 py-2.5 sm:px-5">
             <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/48">
-              빈 배경
+              빈 캔버스
             </span>
-            {BLANK_PRESETS.map((preset) => (
-              <button
-                key={preset.name}
-                type="button"
-                onClick={() => void handleCreateBlank(preset)}
-                className="flex min-h-9 shrink-0 items-center gap-2 rounded-full border border-workbench-foreground/15 px-3.5 text-[11px] font-semibold text-workbench-foreground/72 transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <span
-                  className="size-3 rounded-full border border-workbench-foreground/30"
-                  style={{ backgroundColor: preset.color }}
-                  aria-hidden="true"
-                />
-                {preset.label}
-              </button>
-            ))}
+            <input
+              type="number"
+              value={blankCanvas.width}
+              min={BLANK_CANVAS_MIN_SIZE}
+              max={BLANK_CANVAS_MAX_SIZE}
+              onChange={(event) =>
+                setBlankCanvas((current) => ({
+                  ...current,
+                  width: Number(event.target.value),
+                }))
+              }
+              aria-label="빈 캔버스 가로"
+              className="h-9 w-20 shrink-0 rounded-lg border border-workbench-foreground/15 bg-workbench px-2.5 text-center font-mono text-xs font-semibold text-workbench-foreground outline-none focus:ring-2 focus:ring-primary"
+            />
+            <span
+              className="shrink-0 text-xs text-workbench-foreground/40"
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <input
+              type="number"
+              value={blankCanvas.height}
+              min={BLANK_CANVAS_MIN_SIZE}
+              max={BLANK_CANVAS_MAX_SIZE}
+              onChange={(event) =>
+                setBlankCanvas((current) => ({
+                  ...current,
+                  height: Number(event.target.value),
+                }))
+              }
+              aria-label="빈 캔버스 세로"
+              className="h-9 w-20 shrink-0 rounded-lg border border-workbench-foreground/15 bg-workbench px-2.5 text-center font-mono text-xs font-semibold text-workbench-foreground outline-none focus:ring-2 focus:ring-primary"
+            />
+            <button
+              type="button"
+              onClick={() =>
+                setBlankCanvas((current) => ({
+                  ...current,
+                  width: current.height,
+                  height: current.width,
+                }))
+              }
+              aria-label="가로 세로 바꾸기"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-workbench-foreground/15 text-workbench-foreground/60 transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <LuArrowLeftRight className="size-3.5" aria-hidden="true" />
+            </button>
+            <input
+              type="color"
+              value={blankCanvas.color}
+              onChange={(event) =>
+                setBlankCanvas((current) => ({
+                  ...current,
+                  color: event.target.value,
+                }))
+              }
+              aria-label="빈 캔버스 배경색"
+              className="h-9 w-12 shrink-0 cursor-pointer rounded-lg border border-workbench-foreground/15 bg-transparent p-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void handleCreateBlank()}
+              className="shrink-0 border-workbench-foreground/15 bg-workbench text-workbench-foreground hover:bg-workbench-foreground/10 hover:text-workbench-foreground"
+            >
+              캔버스 추가
+            </Button>
           </div>
 
           {images.length > 0 ? (
