@@ -11,6 +11,7 @@ import {
 } from "../lib/canvas-renderer";
 import { createLocalFontOption, ensureFontLoaded } from "../lib/font-loader";
 import {
+  createBlankImageFile,
   createSourceImage,
   createWatermarkImage,
   isSupportedImageFile,
@@ -30,6 +31,47 @@ import { EditorControlPanel } from "./editor-control-panel";
 import { EmptyWorkbench } from "./empty-workbench";
 
 const STATUS_RESET_DELAY_MS = 4_000;
+
+const BLANK_PRESETS = [
+  {
+    label: "흰 배경 9:16",
+    name: "blank-white-1080x1920",
+    width: 1080,
+    height: 1920,
+    color: "#ffffff",
+    textColor: "#111111",
+  },
+  {
+    label: "검은 배경 9:16",
+    name: "blank-black-1080x1920",
+    width: 1080,
+    height: 1920,
+    color: "#000000",
+    textColor: "#ffffff",
+  },
+  {
+    label: "흰 배경 16:9",
+    name: "blank-white-1920x1080",
+    width: 1920,
+    height: 1080,
+    color: "#ffffff",
+    textColor: "#111111",
+  },
+  {
+    label: "검은 배경 16:9",
+    name: "blank-black-1920x1080",
+    width: 1920,
+    height: 1080,
+    color: "#000000",
+    textColor: "#ffffff",
+  },
+] as const;
+
+// 빈 배경이 덮어써도 되는 글자색. 사용자가 직접 고른 색은 그대로 둔다.
+const PRESET_MANAGED_COLORS = new Set([
+  DEFAULT_EDITOR_SETTINGS.text.color,
+  ...BLANK_PRESETS.map((preset) => preset.textColor),
+]);
 
 function cloneDefaultSettings(): EditorSettings {
   return {
@@ -152,6 +194,35 @@ export function WatermarkStudio() {
           ? `${loadedImages.length}개를 추가했고 ${failedCount}개는 읽지 못했습니다.`
           : `${loadedImages.length}개 이미지를 추가했습니다.`,
     });
+  };
+
+  const handleCreateBlank = async (preset: (typeof BLANK_PRESETS)[number]) => {
+    try {
+      const blankImage = await createSourceImage(
+        createBlankImageFile(
+          preset.name,
+          preset.width,
+          preset.height,
+          preset.color,
+        ),
+      );
+      setImages((current) => [...current, blankImage]);
+      setSelectedImageId(blankImage.id);
+      setSettings((current) =>
+        PRESET_MANAGED_COLORS.has(current.text.color)
+          ? { ...current, text: { ...current.text, color: preset.textColor } }
+          : current,
+      );
+      setStatus({
+        kind: "success",
+        message: `${preset.label} 이미지를 추가했습니다.`,
+      });
+    } catch {
+      setStatus({
+        kind: "error",
+        message: "빈 배경을 만들지 못했습니다.",
+      });
+    }
   };
 
   const handleRemoveImage = (imageId: string) => {
@@ -409,6 +480,27 @@ export function WatermarkStudio() {
                 onOpenFilePicker={() => sourceInputRef.current?.click()}
               />
             )}
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto border-t border-workbench-foreground/10 px-4 py-2.5 sm:px-5">
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/48">
+              빈 배경
+            </span>
+            {BLANK_PRESETS.map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => void handleCreateBlank(preset)}
+                className="flex min-h-9 shrink-0 items-center gap-2 rounded-full border border-workbench-foreground/15 px-3.5 text-[11px] font-semibold text-workbench-foreground/72 transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <span
+                  className="size-3 rounded-full border border-workbench-foreground/30"
+                  style={{ backgroundColor: preset.color }}
+                  aria-hidden="true"
+                />
+                {preset.label}
+              </button>
+            ))}
           </div>
 
           {images.length > 0 ? (

@@ -170,3 +170,22 @@ test("모바일 화면에서도 업로드와 설정 패널을 사용할 수 있�
   await page.keyboard.press("Escape");
   await expect(fontTrigger).toBeFocused();
 });
+
+test("빈 배경 프리셋으로 업로드 없이 워터마크를 만든다", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "흰 배경 9:16" }).click();
+
+  const previewCanvas = page.getByRole("img", {
+    name: "blank-white-1080x1920.svg 워터마크 미리보기",
+  });
+  await expect(previewCanvas).toBeVisible();
+  await expect(previewCanvas).toHaveJSProperty("width", 900);
+  await expect(previewCanvas).toHaveJSProperty("height", 1600);
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "현재 이미지 다운로드" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe(
+    "blank-white-1080x1920-watermarked.png",
+  );
+});

@@ -66,3 +66,13 @@ export async function createWatermarkImage(
 export function revokeSourceImage(image: SourceImage | WatermarkImage): void {
   URL.revokeObjectURL(image.url);
 }
+
+export function createBlankImageFile(
+  name: string,
+  width: number,
+  height: number,
+  color: string,
+): File {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${color}"/></svg>`;
+  return new File([svg], `${name}.svg`, { type: "image/svg+xml" });
+}
