@@ -170,3 +170,74 @@ test("모바일 화면에서도 업로드와 설정 패널을 사용할 수 있�
   await page.keyboard.press("Escape");
   await expect(fontTrigger).toBeFocused();
 });
+
+test("빈 캔버스로 업로드 없이 워터마크를 만든다", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "캔버스 추가" }).click();
+
+  // 기본값 1080x1920은 MAX_PREVIEW_DIMENSION 1600에 맞춰 900x1600으로 축소된다.
+  // SVG에서 width/height를 빠뜨리면 여기가 84x150이 되므로 회귀 감지 장치다.
+  const previewCanvas = page.getByRole("img", {
+    name: "blank-1080x1920-ffffff.svg 워터마크 미리보기",
+  });
+  await expect(previewCanvas).toBeVisible();
+  await expect(previewCanvas).toHaveJSProperty("width", 900);
+  await expect(previewCanvas).toHaveJSProperty("height", 1600);
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "현재 이미지 다운로드" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe(
+    "blank-1080x1920-ffffff-watermarked.png",
+  );
+});
+
+test("빈 캔버스의 가로 세로와 배경색을 직접 정한다", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByLabel("빈 캔버스 가로").fill("800");
+  await page.getByLabel("빈 캔버스 세로").fill("600");
+  // 색상 선택기는 타이핑할 수 없다. React의 value tracker가 직접 대입을
+  // 무시하므로 네이티브 setter로 값을 넣은 뒤 input 이벤트를 발생시킨다.
+  await page.getByLabel("빈 캔버스 배경색").evaluate((input) => {
+    const setValue = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+    setValue?.call(input, "#000000");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.getByRole("button", { name: "캔버스 추가" }).click();
+
+  const previewCanvas = page.getByRole("img", {
+    name: "blank-800x600-000000.svg 워터마크 미리보기",
+  });
+  await expect(previewCanvas).toHaveJSProperty("width", 800);
+  await expect(previewCanvas).toHaveJSProperty("height", 600);
+  // 어두운 배경이면 워터마크 글자색이 흰색으로 자동 전환된다.
+  await expect(page.getByLabel("워터마크 색상 HEX 값")).toHaveValue("#FFFFFF");
+
+  await page.getByRole("button", { name: "가로 세로 바꾸기" }).click();
+  await expect(page.getByLabel("빈 캔버스 가로")).toHaveValue("600");
+  await expect(page.getByLabel("빈 캔버스 세로")).toHaveValue("800");
+});
+
+test("좁은 화면에서도 캔버스 추가 버튼이 잘리지 않는다", async ({ page }) => {
+  // 바가 overflow-x-auto였을 때 320px에서 주 액션이 화면 밖으로 완전히 나갔다.
+  // flex-wrap으로 줄바꿈시켜 해결했고, 이 단정이 회귀를 막는다.
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/");
+
+    const addButton = page.getByRole("button", { name: "캔버스 추가" });
+    const box = await addButton.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.x).toBeGreaterThanOrEqual(0);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(width);
+
+    const hasHorizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    );
+    expect(hasHorizontalOverflow).toBe(false);
+  }
+});

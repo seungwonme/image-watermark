@@ -78,7 +78,7 @@ export function CanvasPreview({
         ref={canvasRef}
         role="img"
         aria-label={`${source.name} 워터마크 미리보기`}
-        className="max-h-[68vh] max-w-full rounded-sm object-contain shadow-[0_30px_90px_rgba(0,0,0,0.3)]"
+        className="max-h-[68vh] max-w-full rounded-sm object-contain shadow-[0_30px_90px_rgba(0,0,0,0.3)] ring-1 ring-white/10"
       />
 
       {previewState === "loading" ? (
