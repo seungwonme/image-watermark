@@ -178,6 +178,7 @@ export function WatermarkStudio() {
   const handleCreateBlank = async () => {
     const width = clampBlankCanvasSize(blankCanvas.width);
     const height = clampBlankCanvasSize(blankCanvas.height);
+    setBlankCanvas((current) => ({ ...current, width, height }));
     try {
       const blankImage = await createSourceImage(
         createBlankImageFile(width, height, blankCanvas.color),
@@ -197,7 +198,7 @@ export function WatermarkStudio() {
       );
       setStatus({
         kind: "success",
-        message: `${width} × ${height} 빈 캔버스를 추가했습니다.`,
+        message: `${width.toLocaleString()} × ${height.toLocaleString()} px 빈 캔버스를 추가했습니다.`,
       });
     } catch {
       setStatus({
@@ -430,7 +431,7 @@ export function WatermarkStudio() {
               <p className="truncate text-sm font-bold text-workbench-foreground">
                 {activeImage?.name ?? "작업 이미지"}
               </p>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-workbench-foreground/45">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-workbench-foreground/55">
                 {activeImage
                   ? `${activeImage.width.toLocaleString()} × ${activeImage.height.toLocaleString()} px`
                   : "이미지를 추가해 시작하세요"}
@@ -441,7 +442,7 @@ export function WatermarkStudio() {
               variant="outline"
               size="sm"
               onClick={() => sourceInputRef.current?.click()}
-              className="shrink-0 border-workbench-foreground/15 bg-workbench text-workbench-foreground hover:bg-workbench-foreground/10 hover:text-workbench-foreground"
+              className="shrink-0 border-workbench-foreground/40 bg-workbench text-workbench-foreground hover:bg-workbench-foreground/10 hover:text-workbench-foreground"
             >
               <LuPlus aria-hidden="true" />
               이미지 추가
@@ -464,8 +465,8 @@ export function WatermarkStudio() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto border-t border-workbench-foreground/10 px-4 py-2.5 sm:px-5">
-            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/48">
+          <div className="flex flex-wrap items-center gap-2 border-t border-workbench-foreground/10 px-4 py-2.5 sm:px-5">
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/55">
               빈 캔버스
             </span>
             <input
@@ -479,11 +480,11 @@ export function WatermarkStudio() {
                   width: Number(event.target.value),
                 }))
               }
-              aria-label="빈 캔버스 가로"
-              className="h-9 w-20 shrink-0 rounded-lg border border-workbench-foreground/15 bg-workbench px-2.5 text-center font-mono text-xs font-semibold text-workbench-foreground outline-none focus:ring-2 focus:ring-primary"
+              aria-label="빈 캔버스 가로 (px)"
+              className="h-9 w-20 shrink-0 rounded-lg border border-workbench-foreground/40 bg-workbench px-2.5 text-center font-mono text-xs font-semibold text-workbench-foreground outline-none focus:ring-2 focus:ring-primary"
             />
             <span
-              className="shrink-0 text-xs text-workbench-foreground/40"
+              className="shrink-0 text-xs text-workbench-foreground/60"
               aria-hidden="true"
             >
               ×
@@ -499,9 +500,15 @@ export function WatermarkStudio() {
                   height: Number(event.target.value),
                 }))
               }
-              aria-label="빈 캔버스 세로"
-              className="h-9 w-20 shrink-0 rounded-lg border border-workbench-foreground/15 bg-workbench px-2.5 text-center font-mono text-xs font-semibold text-workbench-foreground outline-none focus:ring-2 focus:ring-primary"
+              aria-label="빈 캔버스 세로 (px)"
+              className="h-9 w-20 shrink-0 rounded-lg border border-workbench-foreground/40 bg-workbench px-2.5 text-center font-mono text-xs font-semibold text-workbench-foreground outline-none focus:ring-2 focus:ring-primary"
             />
+            <span
+              className="shrink-0 text-xs text-workbench-foreground/60"
+              aria-hidden="true"
+            >
+              px
+            </span>
             <button
               type="button"
               onClick={() =>
@@ -512,7 +519,7 @@ export function WatermarkStudio() {
                 }))
               }
               aria-label="가로 세로 바꾸기"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-workbench-foreground/15 text-workbench-foreground/60 transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-workbench-foreground/40 text-workbench-foreground/60 transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <LuArrowLeftRight className="size-3.5" aria-hidden="true" />
             </button>
@@ -526,14 +533,14 @@ export function WatermarkStudio() {
                 }))
               }
               aria-label="빈 캔버스 배경색"
-              className="h-9 w-12 shrink-0 cursor-pointer rounded-lg border border-workbench-foreground/15 bg-transparent p-1"
+              className="h-9 w-12 shrink-0 cursor-pointer rounded-lg border border-workbench-foreground/40 bg-transparent p-1 outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => void handleCreateBlank()}
-              className="shrink-0 border-workbench-foreground/15 bg-workbench text-workbench-foreground hover:bg-workbench-foreground/10 hover:text-workbench-foreground"
+              className="h-9 shrink-0 rounded-lg border-workbench-foreground/40 bg-workbench text-workbench-foreground hover:bg-workbench-foreground/10 hover:text-workbench-foreground"
             >
               캔버스 추가
             </Button>
@@ -541,8 +548,8 @@ export function WatermarkStudio() {
 
           {images.length > 0 ? (
             <div className="border-t border-workbench-foreground/10 bg-workbench/94 px-4 py-3 sm:px-5">
-              <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/48">
-                <span>{images.length} images</span>
+              <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/55">
+                <span>이미지 {images.length}장</span>
                 <span>클릭해서 편집 이미지 변경</span>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1">

@@ -221,3 +221,23 @@ test("빈 캔버스의 가로 세로와 배경색을 직접 정한다", async ({
   await expect(page.getByLabel("빈 캔버스 가로")).toHaveValue("600");
   await expect(page.getByLabel("빈 캔버스 세로")).toHaveValue("800");
 });
+
+test("좁은 화면에서도 캔버스 추가 버튼이 잘리지 않는다", async ({ page }) => {
+  // 바가 overflow-x-auto였을 때 320px에서 주 액션이 화면 밖으로 완전히 나갔다.
+  // flex-wrap으로 줄바꿈시켜 해결했고, 이 단정이 회귀를 막는다.
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/");
+
+    const addButton = page.getByRole("button", { name: "캔버스 추가" });
+    const box = await addButton.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.x).toBeGreaterThanOrEqual(0);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(width);
+
+    const hasHorizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    );
+    expect(hasHorizontalOverflow).toBe(false);
+  }
+});
