@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LuImagePlus, LuPlus, LuTrash2, LuUpload } from "react-icons/lu";
+import {
+  LuArrowLeftRight,
+  LuImagePlus,
+  LuPlus,
+  LuTrash2,
+  LuUpload,
+} from "react-icons/lu";
 import { Button } from "@/shared/ui";
 import { FONT_CATALOG, findFontById } from "../config";
 import {
@@ -11,9 +17,14 @@ import {
 } from "../lib/canvas-renderer";
 import { createLocalFontOption, ensureFontLoaded } from "../lib/font-loader";
 import {
+  BLANK_CANVAS_MAX_SIZE,
+  BLANK_CANVAS_MIN_SIZE,
+  clampBlankCanvasSize,
+  createBlankImageFile,
   createSourceImage,
   createWatermarkImage,
   isSupportedImageFile,
+  readableTextColor,
   revokeSourceImage,
   SUPPORTED_FONT_EXTENSIONS,
 } from "../lib/image-files";
@@ -30,6 +41,15 @@ import { EditorControlPanel } from "./editor-control-panel";
 import { EmptyWorkbench } from "./empty-workbench";
 
 const STATUS_RESET_DELAY_MS = 4_000;
+
+const DEFAULT_BLANK_CANVAS = { width: 1080, height: 1920, color: "#ffffff" };
+
+// 빈 캔버스가 덮어써도 되는 글자색. 사용자가 직접 고른 색은 그대로 둔다.
+const AUTO_TEXT_COLORS = new Set([
+  DEFAULT_EDITOR_SETTINGS.text.color,
+  "#111111",
+  "#ffffff",
+]);
 
 function cloneDefaultSettings(): EditorSettings {
   return {
@@ -61,6 +81,7 @@ export function WatermarkStudio() {
     useState<EditorSettings>(cloneDefaultSettings);
   const [status, setStatus] = useState<EditorStatus>({ kind: "idle" });
   const [isDragging, setIsDragging] = useState(false);
+  const [blankCanvas, setBlankCanvas] = useState(DEFAULT_BLANK_CANVAS);
   const sourceInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
   const imagesRef = useRef(images);
@@ -152,6 +173,39 @@ export function WatermarkStudio() {
           ? `${loadedImages.length}개를 추가했고 ${failedCount}개는 읽지 못했습니다.`
           : `${loadedImages.length}개 이미지를 추가했습니다.`,
     });
+  };
+
+  const handleCreateBlank = async () => {
+    const width = clampBlankCanvasSize(blankCanvas.width);
+    const height = clampBlankCanvasSize(blankCanvas.height);
+    setBlankCanvas((current) => ({ ...current, width, height }));
+    try {
+      const blankImage = await createSourceImage(
+        createBlankImageFile(width, height, blankCanvas.color),
+      );
+      setImages((current) => [...current, blankImage]);
+      setSelectedImageId(blankImage.id);
+      setSettings((current) =>
+        AUTO_TEXT_COLORS.has(current.text.color)
+          ? {
+              ...current,
+              text: {
+                ...current.text,
+                color: readableTextColor(blankCanvas.color),
+              },
+            }
+          : current,
+      );
+      setStatus({
+        kind: "success",
+        message: `${width.toLocaleString()} × ${height.toLocaleString()} px 빈 캔버스를 추가했습니다.`,
+      });
+    } catch {
+      setStatus({
+        kind: "error",
+        message: "빈 캔버스를 만들지 못했습니다.",
+      });
+    }
   };
 
   const handleRemoveImage = (imageId: string) => {
@@ -377,7 +431,7 @@ export function WatermarkStudio() {
               <p className="truncate text-sm font-bold text-workbench-foreground">
                 {activeImage?.name ?? "작업 이미지"}
               </p>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-workbench-foreground/45">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-workbench-foreground/55">
                 {activeImage
                   ? `${activeImage.width.toLocaleString()} × ${activeImage.height.toLocaleString()} px`
                   : "이미지를 추가해 시작하세요"}
@@ -388,7 +442,7 @@ export function WatermarkStudio() {
               variant="outline"
               size="sm"
               onClick={() => sourceInputRef.current?.click()}
-              className="shrink-0 border-workbench-foreground/15 bg-workbench text-workbench-foreground hover:bg-workbench-foreground/10 hover:text-workbench-foreground"
+              className="shrink-0 border-workbench-foreground/40 bg-workbench text-workbench-foreground hover:bg-workbench-foreground/10 hover:text-workbench-foreground"
             >
               <LuPlus aria-hidden="true" />
               이미지 추가
@@ -411,10 +465,91 @@ export function WatermarkStudio() {
             )}
           </div>
 
+          <div className="flex flex-wrap items-center gap-2 border-t border-workbench-foreground/10 px-4 py-2.5 sm:px-5">
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/55">
+              빈 캔버스
+            </span>
+            <input
+              type="number"
+              value={blankCanvas.width}
+              min={BLANK_CANVAS_MIN_SIZE}
+              max={BLANK_CANVAS_MAX_SIZE}
+              onChange={(event) =>
+                setBlankCanvas((current) => ({
+                  ...current,
+                  width: Number(event.target.value),
+                }))
+              }
+              aria-label="빈 캔버스 가로 (px)"
+              className="h-9 w-20 shrink-0 rounded-lg border border-workbench-foreground/40 bg-workbench px-2.5 text-center font-mono text-xs font-semibold text-workbench-foreground outline-none focus:ring-2 focus:ring-primary"
+            />
+            <span
+              className="shrink-0 text-xs text-workbench-foreground/60"
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <input
+              type="number"
+              value={blankCanvas.height}
+              min={BLANK_CANVAS_MIN_SIZE}
+              max={BLANK_CANVAS_MAX_SIZE}
+              onChange={(event) =>
+                setBlankCanvas((current) => ({
+                  ...current,
+                  height: Number(event.target.value),
+                }))
+              }
+              aria-label="빈 캔버스 세로 (px)"
+              className="h-9 w-20 shrink-0 rounded-lg border border-workbench-foreground/40 bg-workbench px-2.5 text-center font-mono text-xs font-semibold text-workbench-foreground outline-none focus:ring-2 focus:ring-primary"
+            />
+            <span
+              className="shrink-0 text-xs text-workbench-foreground/60"
+              aria-hidden="true"
+            >
+              px
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                setBlankCanvas((current) => ({
+                  ...current,
+                  width: current.height,
+                  height: current.width,
+                }))
+              }
+              aria-label="가로 세로 바꾸기"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-workbench-foreground/40 text-workbench-foreground/60 transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <LuArrowLeftRight className="size-3.5" aria-hidden="true" />
+            </button>
+            <input
+              type="color"
+              value={blankCanvas.color}
+              onChange={(event) =>
+                setBlankCanvas((current) => ({
+                  ...current,
+                  color: event.target.value,
+                }))
+              }
+              aria-label="빈 캔버스 배경색"
+              className="h-9 w-12 shrink-0 cursor-pointer rounded-lg border border-workbench-foreground/40 bg-transparent p-1 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void handleCreateBlank()}
+              className="h-9 shrink-0 rounded-lg border-workbench-foreground/40 bg-workbench text-workbench-foreground hover:bg-workbench-foreground/10 hover:text-workbench-foreground"
+            >
+              캔버스 추가
+            </Button>
+          </div>
+
           {images.length > 0 ? (
             <div className="border-t border-workbench-foreground/10 bg-workbench/94 px-4 py-3 sm:px-5">
-              <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/48">
-                <span>{images.length} images</span>
+              <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.13em] text-workbench-foreground/55">
+                <span>이미지 {images.length}장</span>
                 <span>클릭해서 편집 이미지 변경</span>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1">
